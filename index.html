@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Timer ✨</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #fff0f5;
+      --surface: #ffffff;
+      --surface2: #ffeef4;
+      --border: #fac8dc;
+      --accent: #e8769a;
+      --accent-dark: #d45c82;
+      --green: #f48fb1;
+      --red: #e57373;
+      --text: #5c3d4e;
+      --muted: #c48aab;
+      --radius: 20px;
+      --shadow: 0 4px 24px rgba(232,118,154,.13);
+      --shadow-sm: 0 2px 10px rgba(232,118,154,.10);
+    }
+
+    body {
+      font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(circle at 15% 20%, #ffe0ec 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, #fce4f4 0%, transparent 40%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 36px 16px 72px;
+      gap: 28px;
+    }
+
+    .site-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: .01em;
+    }
+
+    .subtitle {
+      font-size: .82rem;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: .06em;
+    }
+
+    /* ── TIMER ── */
+    .timer-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 36px 48px;
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--surface2);
+      border-radius: 50px;
+      padding: 5px;
+    }
+
+    .mode-tab {
+      background: none;
+      border: none;
+      border-radius: 50px;
+      color: var(--muted);
+      padding: 6px 16px;
+      font-size: .78rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .2s;
+      letter-spacing: .02em;
+    }
+
+    .mode-tab.active, .mode-tab:hover {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(232,118,154,.35);
+    }
+
+    .timer-ring {
+      position: relative;
+      width: 210px;
+      height: 210px;
+    }
+
+    .timer-ring svg {
+      transform: rotate(-90deg);
+      width: 210px;
+      height: 210px;
+      filter: drop-shadow(0 0 10px rgba(232,118,154,.2));
+    }
+
+    .ring-bg { fill: none; stroke: #fce4ef; stroke-width: 10; }
+    .ring-progress {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 10;
+      stroke-linecap: round;
+      transition: stroke-dashoffset .5s linear, stroke .3s;
+    }
+
+    .timer-display {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .timer-emoji { font-size: 1.4rem; line-height: 1; }
+
+    .timer-time {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: .02em;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+
+    .timer-label {
+      font-size: .72rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    .timer-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 700;
+      font-family: inherit;
+      padding: 11px 30px;
+      transition: all .18s;
+      letter-spacing: .02em;
+    }
+
+    .btn:active { transform: scale(.95); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(232,118,154,.4);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(232,118,154,.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .session-count {
+      font-size: .8rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .session-dots {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+      justify-content: center;
+    }
+
+    .dot {
+      font-size: 1rem;
+      transition: all .3s;
+      filter: grayscale(1) opacity(.3);
+    }
+
+    .dot.filled {
+      filter: none;
+      transform: scale(1.15);
+    }
+
+    /* ── TASKS ── */
+    .tasks-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 440px;
+      overflow: hidden;
+    }
+
+    .tasks-header {
+      padding: 20px 24px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    .tasks-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .tasks-stats {
+      font-size: .78rem;
+      color: var(--muted);
+      font-weight: 700;
+      background: var(--surface2);
+      padding: 3px 10px;
+      border-radius: 50px;
+    }
+
+    .task-input-row {
+      display: flex;
+      gap: 8px;
+      padding: 14px 20px;
+      border-bottom: 1.5px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .task-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      color: var(--text);
+      font-size: .88rem;
+      font-family: inherit;
+      font-weight: 600;
+      padding: 8px 16px;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .task-input::placeholder { color: var(--muted); }
+
+    .task-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(232,118,154,.15);
+    }
+
+    .btn-add {
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      border: none;
+      border-radius: 50px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1;
+      padding: 8px 16px;
+      box-shadow: 0 2px 8px rgba(232,118,154,.35);
+      transition: all .18s;
+    }
+
+    .btn-add:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 14px rgba(232,118,154,.5);
+    }
+
+    .task-list {
+      list-style: none;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+
+    .task-list::-webkit-scrollbar { width: 4px; }
+    .task-list::-webkit-scrollbar-track { background: transparent; }
+    .task-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 20px;
+      border-bottom: 1px solid #fce8f0;
+      transition: background .15s;
+      animation: slideIn .22s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .task-item:last-child { border-bottom: none; }
+    .task-item:hover { background: #fffafc; }
+
+    .task-check {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      transition: all .18s;
+      background: var(--surface);
+    }
+
+    .task-check:hover {
+      border-color: var(--accent);
+      background: var(--surface2);
+    }
+
+    .task-check.checked {
+      background: linear-gradient(135deg, #f48fb1, #e8769a);
+      border-color: #e8769a;
+    }
+
+    .task-check.checked::after {
+      content: '✓';
+      color: #fff;
+      font-size: .75rem;
+      font-weight: 800;
+    }
+
+    .task-text {
+      flex: 1;
+      font-size: .9rem;
+      font-weight: 600;
+      transition: all .2s;
+      color: var(--text);
+    }
+
+    .task-text.done {
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .task-delete {
+      background: none;
+      border: none;
+      color: var(--border);
+      cursor: pointer;
+      font-size: .9rem;
+      opacity: 0;
+      padding: 3px 7px;
+      border-radius: 50px;
+      transition: all .15s;
+    }
+
+    .task-item:hover .task-delete { opacity: 1; }
+    .task-delete:hover { color: var(--red); background: rgba(229,115,115,.1); }
+
+    .empty-state {
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 600;
+    }
+
+    .empty-state-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+
+    .clear-done {
+      width: 100%;
+      background: none;
+      border: none;
+      border-top: 1.5px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .8rem;
+      font-family: inherit;
+      font-weight: 700;
+      padding: 12px;
+      transition: color .15s, background .15s;
+    }
+
+    .clear-done:hover { color: var(--red); background: rgba(229,115,115,.05); }
+
+    /* ── NOTIFICATION BANNER ── */
+    .notif {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      box-shadow: var(--shadow);
+      padding: 12px 28px;
+      font-size: .88rem;
+      font-weight: 700;
+      font-family: inherit;
+      color: var(--text);
+      opacity: 0;
+      transition: all .35s cubic-bezier(.22,1,.36,1);
+      white-space: nowrap;
+      z-index: 100;
+    }
+
+    .notif.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── SETTINGS ── */
+    .settings-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: .8rem;
+      font-family: inherit;
+      font-weight: 700;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 50px;
+      transition: all .18s;
+    }
+
+    .settings-toggle:hover { color: var(--accent); background: var(--surface2); }
+
+    .settings-toggle .gear {
+      display: inline-block;
+      transition: transform .4s;
+    }
+
+    .settings-toggle.open .gear { transform: rotate(90deg); }
+
+    .settings-panel {
+      width: 100%;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height .35s cubic-bezier(.4,0,.2,1), opacity .25s;
+      opacity: 0;
+    }
+
+    .settings-panel.open {
+      max-height: 280px;
+      opacity: 1;
+    }
+
+    .settings-inner {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .settings-label {
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .settings-label span { color: var(--muted); font-weight: 600; }
+
+    .duration-input {
+      width: 68px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: .88rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      text-align: center;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+      -moz-appearance: textfield;
+    }
+
+    .duration-input::-webkit-inner-spin-button,
+    .duration-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .duration-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(232,118,154,.15);
+    }
+
+    .settings-apply {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      border: none;
+      border-radius: 50px;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: .8rem;
+      font-weight: 700;
+      padding: 7px 20px;
+      box-shadow: 0 2px 8px rgba(232,118,154,.35);
+      transition: all .18s;
+    }
+
+    .settings-apply:hover {
+      box-shadow: 0 4px 14px rgba(232,118,154,.5);
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="site-header">
+    <h1>✨ Study Timer ✨</h1>
+    <span class="subtitle">you've got this!</span>
+  </div>
+
+  <!-- TIMER -->
+  <div class="timer-card">
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="pomodoro">🍓 Pomodoro</button>
+      <button class="mode-tab" data-mode="short">🌸 Short Break</button>
+      <button class="mode-tab" data-mode="long">🌙 Long Break</button>
+    </div>
+
+    <div class="timer-ring">
+      <svg viewBox="0 0 210 210">
+        <circle class="ring-bg" cx="105" cy="105" r="93" />
+        <circle class="ring-progress" id="ring" cx="105" cy="105" r="93"
+          stroke-dasharray="584"
+          stroke-dashoffset="0" />
+      </svg>
+      <div class="timer-display">
+        <span class="timer-emoji" id="timerEmoji">🍓</span>
+        <span class="timer-time" id="timerDisplay">25:00</span>
+        <span class="timer-label" id="timerLabel">Focus</span>
+      </div>
+    </div>
+
+    <div class="timer-controls">
+      <button class="btn btn-ghost" id="resetBtn">Reset</button>
+      <button class="btn btn-primary" id="startBtn">Start</button>
+    </div>
+
+    <div style="text-align:center">
+      <div class="session-count">Session <span id="sessionNum">1</span> of 4</div>
+      <div class="session-dots" id="sessionDots">
+        <span class="dot">🌸</span><span class="dot">🌸</span>
+        <span class="dot">🌸</span><span class="dot">🌸</span>
+      </div>
+    </div>
+
+    <button class="settings-toggle" id="settingsToggle">
+      <span class="gear">⚙️</span> timer settings
+    </button>
+
+    <div class="settings-panel" id="settingsPanel">
+      <div class="settings-inner">
+        <div class="settings-row">
+          <span class="settings-label">🍓 Pomodoro <span>(mins)</span></span>
+          <input class="duration-input" id="inputPomodoro" type="number" min="1" max="90" value="25" />
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">🌸 Short Break <span>(mins)</span></span>
+          <input class="duration-input" id="inputShort" type="number" min="1" max="60" value="5" />
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">🌙 Long Break <span>(mins)</span></span>
+          <input class="duration-input" id="inputLong" type="number" min="1" max="60" value="15" />
+        </div>
+        <button class="settings-apply" id="settingsApply">apply ✨</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASKS -->
+  <div class="tasks-card">
+    <div class="tasks-header">
+      <span class="tasks-title">📋 My Tasks</span>
+      <span class="tasks-stats" id="taskStats">0 / 0 done</span>
+    </div>
+    <div class="task-input-row">
+      <input class="task-input" id="taskInput" type="text"
+        placeholder="add a task and press enter ✨" maxlength="120" />
+      <button class="btn-add" id="addBtn" title="Add task">＋</button>
+    </div>
+    <ul class="task-list" id="taskList"></ul>
+    <button class="clear-done" id="clearDone">🗑️ clear completed tasks</button>
+  </div>
+
+  <div class="notif" id="notif"></div>
+
+  <script>
+    /* ── CONFIG ── */
+    const savedDurations = JSON.parse(localStorage.getItem('studytimer_durations') || 'null') || {};
+    const MODES = {
+      pomodoro: { label: 'Focus',       emoji: '🍓', minutes: savedDurations.pomodoro ?? 25, color: '#e8769a' },
+      short:    { label: 'Short Break', emoji: '🌸', minutes: savedDurations.short    ?? 5,  color: '#f48fb1' },
+      long:     { label: 'Long Break',  emoji: '🌙', minutes: savedDurations.long     ?? 15, color: '#ce93d8' },
+    };
+
+    const CIRCUMFERENCE = 2 * Math.PI * 93; // r=93
+
+    /* ── STATE ── */
+    let currentMode = 'pomodoro';
+    let totalSeconds = MODES.pomodoro.minutes * 60;
+    let remaining = totalSeconds;
+    let running = false;
+    let interval = null;
+    let completedSessions = 0;
+    let tasks = JSON.parse(localStorage.getItem('studytimer_tasks') || '[]');
+
+    /* ── ELEMENTS ── */
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerLabel   = document.getElementById('timerLabel');
+    const timerEmoji   = document.getElementById('timerEmoji');
+    const ring         = document.getElementById('ring');
+    const startBtn     = document.getElementById('startBtn');
+    const resetBtn     = document.getElementById('resetBtn');
+    const sessionNum   = document.getElementById('sessionNum');
+    const sessionDots  = document.getElementById('sessionDots');
+    const taskInput    = document.getElementById('taskInput');
+    const addBtn       = document.getElementById('addBtn');
+    const taskList     = document.getElementById('taskList');
+    const taskStats    = document.getElementById('taskStats');
+    const clearDone       = document.getElementById('clearDone');
+    const notifEl         = document.getElementById('notif');
+    const settingsToggle  = document.getElementById('settingsToggle');
+    const settingsPanel   = document.getElementById('settingsPanel');
+    const settingsApply   = document.getElementById('settingsApply');
+    const inputPomodoro   = document.getElementById('inputPomodoro');
+    const inputShort      = document.getElementById('inputShort');
+    const inputLong       = document.getElementById('inputLong');
+
+    /* ── TIMER ── */
+    function setMode(mode) {
+      currentMode = mode;
+      totalSeconds = MODES[mode].minutes * 60;
+      remaining = totalSeconds;
+      running = false;
+      clearInterval(interval);
+      startBtn.textContent = 'Start';
+      ring.style.stroke = MODES[mode].color;
+      timerLabel.textContent = MODES[mode].label;
+      timerEmoji.textContent = MODES[mode].emoji;
+      updateDisplay();
+      document.querySelectorAll('.mode-tab').forEach(t =>
+        t.classList.toggle('active', t.dataset.mode === mode));
+    }
+
+    function updateDisplay() {
+      const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+      const s = (remaining % 60).toString().padStart(2, '0');
+      timerDisplay.textContent = `${m}:${s}`;
+      document.title = running ? `${m}:${s} — Study Timer` : 'Study Timer';
+
+      const pct = remaining / totalSeconds;
+      ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - pct);
+    }
+
+    function tick() {
+      if (remaining <= 0) {
+        clearInterval(interval);
+        running = false;
+        startBtn.textContent = 'Start';
+        onTimerEnd();
+        return;
+      }
+      remaining--;
+      updateDisplay();
+    }
+
+    function onTimerEnd() {
+      notify(currentMode === 'pomodoro'
+        ? '🌸 Pomodoro done! Time for a little break~'
+        : '🍓 Break over! You can do it!');
+
+      if (currentMode === 'pomodoro') {
+        completedSessions = Math.min(completedSessions + 1, 4);
+        updateSessionDots();
+        if (completedSessions === 4) {
+          completedSessions = 0;
+          updateSessionDots();
+          setMode('long');
+        } else {
+          setMode('short');
+        }
+      } else {
+        setMode('pomodoro');
+      }
+    }
+
+    function updateSessionDots() {
+      const dots = sessionDots.querySelectorAll('.dot');
+      dots.forEach((d, i) => d.classList.toggle('filled', i < completedSessions));
+      sessionNum.textContent = completedSessions + 1 > 4 ? 1 : completedSessions + 1;
+    }
+
+    startBtn.addEventListener('click', () => {
+      if (running) {
+        clearInterval(interval);
+        running = false;
+        startBtn.textContent = 'Resume';
+      } else {
+        running = true;
+        startBtn.textContent = 'Pause';
+        interval = setInterval(tick, 1000);
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      clearInterval(interval);
+      running = false;
+      startBtn.textContent = 'Start';
+      remaining = totalSeconds;
+      updateDisplay();
+    });
+
+    document.querySelectorAll('.mode-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        if (running && tab.dataset.mode !== currentMode) {
+          notify('⏹️ timer stopped — mode switched!');
+        }
+        setMode(tab.dataset.mode);
+      });
+    });
+
+    /* ── TASKS ── */
+    function saveTasks() {
+      localStorage.setItem('studytimer_tasks', JSON.stringify(tasks));
+    }
+
+    function renderTasks() {
+      taskList.innerHTML = '';
+      if (tasks.length === 0) {
+        taskList.innerHTML = '<div class="empty-state"><span class="empty-state-icon">🌷</span>no tasks yet — add something above!</div>';
+        taskStats.textContent = '0 / 0 done';
+        return;
+      }
+
+      const done = tasks.filter(t => t.done).length;
+      taskStats.textContent = `${done} / ${tasks.length} done`;
+
+      tasks.forEach((task, i) => {
+        const li = document.createElement('li');
+        li.className = 'task-item';
+
+        const check = document.createElement('div');
+        check.className = 'task-check' + (task.done ? ' checked' : '');
+        check.addEventListener('click', () => {
+          tasks[i].done = !tasks[i].done;
+          saveTasks();
+          renderTasks();
+        });
+
+        const text = document.createElement('span');
+        text.className = 'task-text' + (task.done ? ' done' : '');
+        text.textContent = task.text;
+
+        const del = document.createElement('button');
+        del.className = 'task-delete';
+        del.textContent = '✕';
+        del.title = 'Delete task';
+        del.addEventListener('click', () => {
+          tasks.splice(i, 1);
+          saveTasks();
+          renderTasks();
+        });
+
+        li.append(check, text, del);
+        taskList.appendChild(li);
+      });
+    }
+
+    function addTask() {
+      const text = taskInput.value.trim();
+      if (!text) return;
+      tasks.unshift({ text, done: false });
+      taskInput.value = '';
+      saveTasks();
+      renderTasks();
+    }
+
+    addBtn.addEventListener('click', addTask);
+    taskInput.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+    clearDone.addEventListener('click', () => {
+      tasks = tasks.filter(t => !t.done);
+      saveTasks();
+      renderTasks();
+    });
+
+    /* ── NOTIFICATIONS ── */
+    let notifTimeout;
+    function notify(msg) {
+      notifEl.textContent = msg;
+      notifEl.classList.add('show');
+      clearTimeout(notifTimeout);
+      notifTimeout = setTimeout(() => notifEl.classList.remove('show'), 4000);
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Study Timer', { body: msg, icon: '' });
+      }
+    }
+
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    /* ── SETTINGS ── */
+    function syncInputsToModes() {
+      inputPomodoro.value = MODES.pomodoro.minutes;
+      inputShort.value    = MODES.short.minutes;
+      inputLong.value     = MODES.long.minutes;
+    }
+
+    settingsToggle.addEventListener('click', () => {
+      const open = settingsPanel.classList.toggle('open');
+      settingsToggle.classList.toggle('open', open);
+    });
+
+    settingsApply.addEventListener('click', () => {
+      const p = Math.min(90, Math.max(1, parseInt(inputPomodoro.value) || 25));
+      const s = Math.min(60, Math.max(1, parseInt(inputShort.value)    || 5));
+      const l = Math.min(60, Math.max(1, parseInt(inputLong.value)     || 15));
+
+      MODES.pomodoro.minutes = p;
+      MODES.short.minutes    = s;
+      MODES.long.minutes     = l;
+
+      localStorage.setItem('studytimer_durations', JSON.stringify({ pomodoro: p, short: s, long: l }));
+      syncInputsToModes();
+      const wasRunning = running;
+      setMode(currentMode);
+      notify(wasRunning ? '⏹️ timer reset with new durations!' : '✨ timer durations updated!');
+    });
+
+    /* ── INIT ── */
+    ring.setAttribute('stroke-dasharray', CIRCUMFERENCE);
+    syncInputsToModes();
+    setMode('pomodoro');
+    renderTasks();
+  </script>
+</body>
+</html>
